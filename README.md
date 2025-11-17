@@ -1,8 +1,44 @@
+<div align="center">
+  <img src="images/logo.png" alt="Discord Claude CLI Bot Logo" width="200"/>
+
 # Discord Claude CLI Bot
 
 English | [日本語](./README.ja.md)
 
 A Discord bot system integrated with Claude Code CLI. Interact with Claude AI on Discord by mentioning the bot, with support for threaded conversations to maintain context.
+
+</div>
+
+## Quick Start
+
+Get your bot running in 3 steps:
+
+```bash
+# 1. Get tokens (one-time setup on any machine)
+npm install -g @anthropic-ai/claude-code
+claude auth login && claude setup-token  # Copy CLAUDE_CODE_OAUTH_TOKEN
+
+# 2. Clone and configure
+git clone https://github.com/hummer98/discord-claude-cli-bot.git
+cd discord-claude-cli-bot
+cp .env.docker.example .env.docker
+# Edit .env.docker: Set DISCORD_BOT_TOKEN, GIT_REPOSITORY_URL, CLAUDE_CODE_OAUTH_TOKEN
+
+# 3. Start with Docker
+docker-compose up -d
+
+# Or with Podman + Task (recommended)
+task dev:build
+```
+
+**Need tokens?**
+- Discord: [Create Bot](https://discord.com/developers/applications) → Bot tab → Copy token
+- Claude: Run `claude setup-token` (requires Claude Pro/Max) or use [API Key](https://console.anthropic.com/)
+- GitHub: `gh auth token` (for private repos only)
+
+**Try it:** In Discord, type `@YourBot Hello!` and the bot will respond in a thread.
+
+For detailed setup, see [Full Setup Guide](#quick-start-1) below.
 
 ## Features
 

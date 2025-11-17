@@ -229,3 +229,9 @@ tasks:
         echo "✓ Created .env.docker from .env.docker.example"
         echo "Please edit .env.docker and configure your environment variables"
 
+  # Repository utilities
+  repo:open:
+    desc: GitHubリポジトリをブラウザで開く
+    cmds:
+      - gh repo view --web
+

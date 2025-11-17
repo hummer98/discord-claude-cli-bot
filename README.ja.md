@@ -1,8 +1,44 @@
+<div align="center">
+  <img src="images/logo.png" alt="Discord Claude CLI Bot Logo" width="200"/>
+
 # Discord Claude CLI Bot
 
 [English](./README.md) | 日本語
 
 Claude Code CLIを使用したDiscord Botシステム。Discord上でボットにメンションすることで、Claude Code CLIを通じてClaude AIとの対話を可能にし、スレッド形式で会話を継続できます。
+
+</div>
+
+## クイックスタート
+
+3ステップでボットを起動：
+
+```bash
+# 1. トークン取得（任意の環境で1回のみ実行）
+npm install -g @anthropic-ai/claude-code
+claude auth login && claude setup-token  # CLAUDE_CODE_OAUTH_TOKENをコピー
+
+# 2. クローンと設定
+git clone https://github.com/hummer98/discord-claude-cli-bot.git
+cd discord-claude-cli-bot
+cp .env.docker.example .env.docker
+# .env.dockerを編集: DISCORD_BOT_TOKEN、GIT_REPOSITORY_URL、CLAUDE_CODE_OAUTH_TOKENを設定
+
+# 3. Docker起動
+docker-compose up -d
+
+# または Podman + Task（推奨）
+task dev:build
+```
+
+**トークンの取得方法**
+- Discord: [Botを作成](https://discord.com/developers/applications) → Botタブ → トークンをコピー
+- Claude: `claude setup-token`を実行（Claude Pro/Max必須）または[APIキー](https://console.anthropic.com/)を使用
+- GitHub: `gh auth token`（プライベートリポジトリのみ）
+
+**試してみる:** Discordで `@あなたのBot こんにちは！` と入力すると、ボットがスレッドで応答します。
+
+詳細なセットアップは下記の[詳細セットアップガイド](#クイックスタート-1)を参照してください。
 
 ## 特徴
 
