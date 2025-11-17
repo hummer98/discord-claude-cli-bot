@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="images/logo.png" alt="Discord Claude CLI Bot Logo" width="200"/>
+  <img src="images/logo.jpg" alt="Discord Claude CLI Bot Logo" width="600"/>
 
 # Discord Claude CLI Bot
 
