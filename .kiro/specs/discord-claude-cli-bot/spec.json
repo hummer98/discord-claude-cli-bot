@@ -1,0 +1,22 @@
+{
+  "feature_name": "discord-claude-cli-bot",
+  "created_at": "2025-11-15T21:37:41Z",
+  "updated_at": "2025-11-16T06:53:31Z",
+  "language": "ja",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}

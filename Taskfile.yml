@@ -1,0 +1,231 @@
+version: '3'
+
+# Taskfile for Discord Claude CLI Bot with Podman
+# Task runner: https://taskfile.dev
+
+vars:
+  IMAGE_NAME: discord-claude-cli-bot
+  CONTAINER_NAME: discord-claude-cli-bot
+  BUILD_CONTEXT: .
+  DOCKERFILE: Dockerfile
+
+tasks:
+  # Environment check
+  doctor:
+    desc: 必要なソフトウェアとプロジェクト設定を確認
+    cmds:
+      - ./scripts/doctor.sh
+
+  # Build tasks
+  build:
+    desc: Podmanでイメージをビルド
+    cmds:
+      - podman build -t {{.IMAGE_NAME}} -f {{.DOCKERFILE}} {{.BUILD_CONTEXT}}
+
+  build:nocache:
+    desc: キャッシュを使わずにPodmanでイメージをビルド
+    cmds:
+      - podman build --no-cache -t {{.IMAGE_NAME}} -f {{.DOCKERFILE}} {{.BUILD_CONTEXT}}
+
+  # Run tasks
+  up:
+    desc: Podmanでコンテナを起動
+    cmds:
+      - task: volumes:create
+      - |
+        podman run -d \
+          --name {{.CONTAINER_NAME}} \
+          --restart unless-stopped \
+          --env-file .env.docker \
+          -v ./volumes/logs:/app/logs:Z \
+          -v ./volumes/repo:/app/repo:Z \
+          --memory 512m \
+          --cpus 1.0 \
+          {{.IMAGE_NAME}}
+
+  start:
+    desc: 停止中のコンテナを起動
+    cmds:
+      - podman start {{.CONTAINER_NAME}}
+
+  stop:
+    desc: コンテナを停止
+    cmds:
+      - podman stop {{.CONTAINER_NAME}}
+
+  restart:
+    desc: コンテナを再起動
+    cmds:
+      - podman restart {{.CONTAINER_NAME}}
+
+  # Container management
+  down:
+    desc: コンテナを停止して削除
+    cmds:
+      - podman stop {{.CONTAINER_NAME}} || true
+      - podman rm {{.CONTAINER_NAME}} || true
+
+  rm:
+    desc: コンテナを削除(停止している必要があります)
+    cmds:
+      - podman rm {{.CONTAINER_NAME}}
+
+  # Logs and monitoring
+  logs:
+    desc: コンテナのログを表示
+    cmds:
+      - podman logs {{.CONTAINER_NAME}}
+
+  logs:follow:
+    desc: コンテナのログをフォロー
+    cmds:
+      - podman logs -f {{.CONTAINER_NAME}}
+
+  logs:tail:
+    desc: コンテナのログの最新100行を表示
+    cmds:
+      - podman logs --tail 100 {{.CONTAINER_NAME}}
+
+  ps:
+    desc: コンテナの状態を表示
+    cmds:
+      - podman ps -a --filter name={{.CONTAINER_NAME}}
+
+  stats:
+    desc: コンテナのリソース使用状況を表示
+    cmds:
+      - podman stats {{.CONTAINER_NAME}} --no-stream
+
+  inspect:
+    desc: コンテナの詳細情報を表示
+    cmds:
+      - podman inspect {{.CONTAINER_NAME}}
+
+  # Utility tasks
+  exec:
+    desc: "コンテナ内でコマンドを実行(例: task exec -- sh)"
+    cmds:
+      - podman exec -it {{.CONTAINER_NAME}} {{.CLI_ARGS}}
+
+  shell:
+    desc: コンテナ内でシェルを起動
+    cmds:
+      - podman exec -it {{.CONTAINER_NAME}} sh
+
+  # Image management
+  images:
+    desc: ローカルのイメージを表示
+    cmds:
+      - podman images {{.IMAGE_NAME}}
+
+  rmi:
+    desc: イメージを削除
+    cmds:
+      - podman rmi {{.IMAGE_NAME}}
+
+  # Volume management
+  volumes:create:
+    desc: ボリューム用のディレクトリを作成
+    cmds:
+      - mkdir -p ./volumes/logs
+      - mkdir -p ./volumes/repo
+    silent: true
+
+  volumes:clean:
+    desc: ボリュームの内容を削除
+    prompt: ボリュームの内容を削除してもよろしいですか?
+    cmds:
+      - rm -rf ./volumes/logs/*
+      - rm -rf ./volumes/repo/*
+
+  # Cleanup tasks
+  clean:
+    desc: コンテナとイメージを削除
+    cmds:
+      - task: down
+      - task: rmi
+
+  prune:
+    desc: 未使用のPodmanリソースを削除
+    prompt: 未使用のPodmanリソースを削除してもよろしいですか?
+    cmds:
+      - podman system prune -f
+
+  # Development tasks
+  dev:build:
+    desc: イメージをビルドしてコンテナを起動
+    cmds:
+      - task: build
+      - task: down
+      - task: up
+
+  dev:rebuild:
+    desc: イメージを再ビルドしてコンテナを再起動
+    cmds:
+      - task: down
+      - task: build:nocache
+      - task: up
+
+  # Health check
+  health:
+    desc: コンテナのヘルスチェック
+    cmds:
+      - podman healthcheck run {{.CONTAINER_NAME}}
+
+  # Compose alternative (for docker-compose.yml compatibility)
+  compose:up:
+    desc: docker-compose.ymlの設定でPodman Composeを起動
+    cmds:
+      - podman-compose up -d
+
+  compose:down:
+    desc: Podman Composeを停止
+    cmds:
+      - podman-compose down
+
+  compose:logs:
+    desc: Podman Composeのログを表示
+    cmds:
+      - podman-compose logs -f
+
+  # Environment setup
+  env:check:
+    desc: 必要な環境変数が設定されているか確認
+    cmds:
+      - |
+        if [ ! -f .env.docker ]; then
+          echo "Error: .env.docker file not found"
+          echo "Please copy .env.docker.example to .env.docker and configure it"
+          exit 1
+        fi
+        echo "✓ .env.docker file exists"
+
+        # Check required variables
+        required_vars="DISCORD_BOT_TOKEN GIT_REPOSITORY_URL"
+        for var in $required_vars; do
+          if ! grep -q "^${var}=" .env.docker || grep -q "^${var}=$" .env.docker || grep -q "^${var}=your_" .env.docker; then
+            echo "Error: $var is not set in .env.docker"
+            exit 1
+          fi
+          echo "✓ $var is set"
+        done
+
+        # Check Claude authentication (either CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY)
+        if ! grep -q "^CLAUDE_CODE_OAUTH_TOKEN=.\\+" .env.docker && ! grep -q "^ANTHROPIC_API_KEY=.\\+" .env.docker; then
+          echo "Error: Neither CLAUDE_CODE_OAUTH_TOKEN nor ANTHROPIC_API_KEY is set"
+          exit 1
+        fi
+        echo "✓ Claude authentication configured"
+
+  env:setup:
+    desc: .env.docker.exampleから.env.dockerを作成
+    cmds:
+      - |
+        if [ -f .env.docker ]; then
+          echo ".env.docker file already exists"
+          exit 1
+        fi
+        cp .env.docker.example .env.docker
+        echo "✓ Created .env.docker from .env.docker.example"
+        echo "Please edit .env.docker and configure your environment variables"
+

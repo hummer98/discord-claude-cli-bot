@@ -1,0 +1,54 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Volumes
+volumes/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Kiro specs
+.kiro/
+
+# Cache files
+.cache/
+.channels_cache_v2.json
+.users_cache.json
+
+# TypeScript
+*.tsbuildinfo

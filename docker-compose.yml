@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  discord-claude-cli-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discord-claude-cli-bot
+    restart: unless-stopped
+
+    # Use .env.docker for Docker-specific environment variables
+    # This prevents conflicts with local development environment
+    env_file:
+      - .env.docker
+
+    environment:
+      # Required environment variables
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      GIT_REPOSITORY_URL: ${GIT_REPOSITORY_URL}
+
+      # Claude Authentication (GitHub Actions style)
+      # Use CLAUDE_CODE_OAUTH_TOKEN for OAuth (recommended)
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+      # Or use ANTHROPIC_API_KEY for pay-as-you-go
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+      # Optional environment variables
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      BOT_NAME: ${BOT_NAME:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_TO_FILE: ${LOG_TO_FILE:-true}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-/app/logs}
+      LOG_MAX_SIZE: ${LOG_MAX_SIZE:-10m}
+      LOG_MAX_FILES: ${LOG_MAX_FILES:-7d}
+      LOG_COMPRESS: ${LOG_COMPRESS:-true}
+      MAX_THREAD_HISTORY: ${MAX_THREAD_HISTORY:-50}
+      NODE_ENV: ${NODE_ENV:-production}
+
+    volumes:
+      # Mount logs directory to host for persistence
+      - ./volumes/logs:/app/logs
+
+      # Mount repository directory to host for inspection
+      - ./volumes/repo:/app/repo
+
+    # Resource limits (optional but recommended)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
